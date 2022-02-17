@@ -7,5 +7,5 @@ services:
     ports:
       - "5702:5701/tcp"
     volumes:
-      - "config.yaml:/yutuapi/config.yaml"
+      - "./config.yaml:/yutuapi/config.yaml"
 
