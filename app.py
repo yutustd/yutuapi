@@ -32,6 +32,7 @@ def upload_cookie():
     else:
         results = ql.add_cookie(cookie, remark)
     if results:
+        ql.send("Yutu 通知", f"{remark}上传啦！")
         return jsonify({"message": f"欢迎回来，{remark}"})
     else:
         return jsonify({"message": "上传失败啦！"})
@@ -42,7 +43,7 @@ def delete_cookie():
     assert request.path == "/delete_cookie"
     assert request.method == "POST"
     flag_ck_exist = False
-    result = False
+    results = False
     _id = ""
     _remark = ""
     pt_key = request.json["pt_key"]
@@ -55,8 +56,9 @@ def delete_cookie():
             _id = ck['_id']
             _remark = ck["name"]
     if flag_ck_exist:
-        result = ql.del_cookie(_id)
-        if result:
+        results = ql.del_cookie(_id)
+        if results:
+            ql.send("Yutu 通知", f"{_remark}跑路啦！")
             return jsonify({"message": f"再见喽，{_remark}"})
         else:
             return jsonify({"message": "删除失败啦，请稍后再试！"})

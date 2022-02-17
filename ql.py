@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import time
 import requests
@@ -10,7 +11,7 @@ with open("config.yaml") as f:
 ql_url = config["QL_URL"]
 ql_client_id = config["QL_CLIENT_ID"]
 ql_client_secret = config["QL_CLIENT_SECRET"]
-
+wecom_am = config["QYWX_AM"]
 
 def get_token():
     url = f"{ql_url}/open/auth/token"
@@ -109,3 +110,99 @@ def del_cookie(eid):
         return True
     else:
         return False
+
+
+def send(title: str, content: str) -> None:
+    """
+    通过 企业微信 APP 推送消息。
+    """
+    if not wecom_am:
+        print("QYWX_AM 未设置!!\n取消推送")
+        return
+    wecom_am_arr = re.split(",", wecom_am)
+    if 4 < len(wecom_am_arr) > 5:
+        print("QYWX_AM 设置错误!!\n取消推送")
+        return
+    print("企业微信 APP 服务启动")
+
+    corp_id = wecom_am_arr[0]
+    corp_secret = wecom_am_arr[1]
+    touser = wecom_am_arr[2]
+    agent_id = wecom_am_arr[3]
+    try:
+        media_id = wecom_am_arr[4]
+    except IndexError:
+        media_id = ""
+    wx = WeCom(corp_id, corp_secret, agent_id)
+    # 如果没有配置 media_id 默认就以 text 方式发送
+    if not media_id:
+        message = title + "\n\n" + content
+        response = wx.send_text(message, touser)
+    else:
+        response = wx.send_mpnews(title, content, media_id, touser)
+
+    if response == "ok":
+        print("企业微信推送成功！")
+    else:
+        print("企业微信推送失败！错误信息如下：\n", response)
+
+
+class WeCom:
+    def __init__(self, corp_id, corp_secret, agent_id):
+        self.CORPID = corp_id
+        self.CORPSECRET = corp_secret
+        self.AGENTID = agent_id
+
+    def get_access_token(self):
+        url = "https://qyapi.weixin.qq.com/cgi-bin/gettoken"
+        values = {
+            "corpid": self.CORPID,
+            "corpsecret": self.CORPSECRET,
+        }
+        req = requests.post(url, params=values)
+        data = json.loads(req.text)
+        return data["access_token"]
+
+    def send_text(self, message, touser="@all"):
+        send_url = (
+            "https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token="
+            + self.get_access_token()
+        )
+        send_values = {
+            "touser": touser,
+            "msgtype": "text",
+            "agentid": self.AGENTID,
+            "text": {"content": message},
+            "safe": "0",
+        }
+        send_msges = bytes(json.dumps(send_values), "utf-8")
+        response = requests.post(send_url, send_msges)
+        response = response.json()
+        return response["errmsg"]
+
+    def send_mpnews(self, title, message, media_id, touser="@all"):
+        send_url = (
+            "https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token="
+            + self.get_access_token()
+        )
+        send_values = {
+            "touser": touser,
+            "msgtype": "mpnews",
+            "agentid": self.AGENTID,
+            "mpnews": {
+                "articles": [
+                    {
+                        "title": title,
+                        "thumb_media_id": media_id,
+                        "author": "Author",
+                        "content_source_url": "",
+                        "content": message.replace("\n", "<br/>"),
+                        "digest": message,
+                    }
+                ]
+            },
+        }
+        send_msges = bytes(json.dumps(send_values), "utf-8")
+        response = requests.post(send_url, send_msges)
+        response = response.json()
+        return response["errmsg"]
