@@ -18,6 +18,8 @@ def upload_cookie():
     _id = ""
     pt_key = request.json["pt_key"]
     pt_pin = request.json["pt_pin"]
+    if pt_key == "" or pt_pin == "":
+        return jsonify({"message": "Cookie有误！"})
     cookie = f"pt_key={pt_key};pt_pin={pt_pin};"
     remark = request.json["remark"]
     cookies = ql.get_cookies()
