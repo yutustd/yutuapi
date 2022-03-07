@@ -18,17 +18,19 @@ def upload_cookie():
     _id = ""
     pt_key = request.json["pt_key"]
     pt_pin = request.json["pt_pin"]
+    remark = request.json["remark"]
     if pt_key == "" or pt_pin == "":
         return jsonify({"message": "Cookie有误！"})
+    if remark == "":
+        return jsonify({"message": "请添加备注信息！"})
     cookie = f"pt_key={pt_key};pt_pin={pt_pin};"
-    remark = request.json["remark"]
     cookies = ql.get_cookies()
 
     for ck in cookies:
         ck_pt_pin = ck["value"].split(";")[1].split("=")[1]
         if ck_pt_pin == pt_pin:
             flag_ck_exist = True
-            _id = ck['_id']
+            _id = ck['id']
     if flag_ck_exist:
         results = ql.update_cookie(cookie, _id, remark)
     else:

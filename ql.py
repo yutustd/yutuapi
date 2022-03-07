@@ -13,6 +13,7 @@ ql_client_id = config["QL_CLIENT_ID"]
 ql_client_secret = config["QL_CLIENT_SECRET"]
 wecom_am = config["QYWX_AM"]
 
+
 def get_token():
     url = f"{ql_url}/open/auth/token"
     params = {
@@ -77,7 +78,7 @@ def update_cookie(ck, eid, remark):
     data = {
         "name": "JD_COOKIE",
         "value": ck,
-        "_id": eid,
+        "id": eid,
         "remarks": remark
     }
     header = {
@@ -165,8 +166,8 @@ class WeCom:
 
     def send_text(self, message, touser="@all"):
         send_url = (
-            "https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token="
-            + self.get_access_token()
+                "https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token="
+                + self.get_access_token()
         )
         send_values = {
             "touser": touser,
@@ -182,8 +183,8 @@ class WeCom:
 
     def send_mpnews(self, title, message, media_id, touser="@all"):
         send_url = (
-            "https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token="
-            + self.get_access_token()
+                "https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token="
+                + self.get_access_token()
         )
         send_values = {
             "touser": touser,
