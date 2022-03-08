@@ -3,3 +3,4 @@ gevent
 gunicorn
 PyYAML
 requests
+flask-cors
