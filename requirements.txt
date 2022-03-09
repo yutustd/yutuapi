@@ -1,6 +1,6 @@
-Flask
+Flask~=2.0.3
 gevent
 gunicorn
-PyYAML
-requests
+PyYAML~=6.0
+requests~=2.27.1
 flask-cors

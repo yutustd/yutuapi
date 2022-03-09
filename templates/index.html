@@ -1,0 +1,118 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/message.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css' ) }}"/>
+    <script src="{{ url_for('static', filename='js/jquery.js' ) }}"></script>
+    <script src="{{ url_for('static', filename='js/message.js' ) }}"></script>
+    <title>自助获取CK</title>
+</head>
+
+<body>
+<div class="content text-center">
+    <div class="header">
+        <h3>自助获取CK</h3>
+    </div>
+    <div class="alert alert-primary" role="alert" id="info">
+        欢迎使用~
+    </div>
+    <form class="myForm">
+        <div class="form-group">
+            <label for="phone" class="text-left">手机号:</label>
+            <input type="text" class="form-control" id="phone" aria-describedby="emailHelp" name="id"/>
+        </div>
+        <div class="form-group">
+            <label for="remark" class="text-left">备注:</label>
+            <input type="text" class="form-control" id="remark" aria-describedby="emailHelp" name="remark"/>
+        </div>
+        <div class="form-group">
+            <label for="code" class="text-left">验证码:</label>
+            <input type="text" class="form-control" id="code" name="key"/>
+            <input type="button" value="获取验证码" onclick="sendSms()"
+                   class="btn btn-primary margin-top-bottom text-center"/>
+            <input type="button" value="获取cookie" onclick="verifyCode()" class="btn btn-primary margin-top-bottom"/>
+        </div>
+        <div class="form-group">
+            <label for="cookie" class="text-left">Cookie:</label>
+            <input type="text" class="form-control" id="cookie"/>
+            <input
+                    type="button"
+                    value="提交cookie"
+                    onclick="submitCookie()"
+                    class="btn btn-success margin-top-bottom"
+            />
+        </div>
+    </form>
+</div>
+</body>
+<script type="text/javascript">
+    let obj;
+
+    function sendSms() {
+        $.get('/send_sms?phone=' + $('#phone').val(), (data) => {
+            if (data.ok) {
+                $.message({
+                    message: '验证码发送成功',
+                });
+            } else {
+                $.message({
+                    type: 'error',
+                    message: data.message,
+                });
+            }
+            obj = data.data;
+        });
+    }
+
+    function verifyCode() {
+        if (!obj) {
+            $.message({
+                type: 'error',
+                message: '请先发送验证码',
+            });
+        }
+        $.ajax({
+            type: 'POST',
+            url:
+                '/check_code?phone=' + $('#phone').val() + '&code=' + $('#code').val(),
+            data: JSON.stringify(obj),
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+        }).then((data) => {
+            if (data.ok) {
+                $.message({
+                    message: '获取cooke成功',
+                });
+                $('#cookie').val(data.data.ck);
+            } else {
+                $.message({
+                    type: 'error',
+                    message: data.message,
+                });
+            }
+        });
+    }
+
+    function submitCookie() {
+        $.ajax({
+            type: 'POST',
+            url: '/upload_cookie',
+            data: JSON.stringify({
+                pt_key: $('#cookie').val().match(/pt_key=(.*?);/)[1],
+                pt_pin: $('#cookie').val().match(/pt_pin=(.*?);/)[1],
+                remark: $('#remark').val()
+            }),
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+        }).then((data) => {
+            $.message({
+                message: data.message,
+            });
+        });
+    }
+</script>
+</html>
