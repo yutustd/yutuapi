@@ -110,7 +110,7 @@ def check_code():
         return jsonify({'ok': False, 'message': data['err_msg']})
     else:
         pt_key = data['data']['pt_key']
-        pt_pin = data['data']['pt_pin'].encode('utf-8')
+        pt_pin = data['data']['pt_pin']
         cookie = f'pt_key={pt_key};pt_pin={pt_pin};'
         return jsonify({'ok': True, 'message': '获取 CK 成功', 'data': {'ck': cookie}})
 
